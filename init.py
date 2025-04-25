@@ -1,10 +1,10 @@
-import pygame
-import sys
 import os
-import random
+import sys
+
+import pygame
 
 import config
-from directions import DIRS
+from Enemy import Enemy
 from level import next_level, bfs
 
 # === PYGAME INIT ===
@@ -33,23 +33,12 @@ frame_count = 0
 # === MAIN LOOP ===
 running = True
 while running:
+    # Movimenti del player
     running = config.player.move(pygame=pygame) if config.player.move(pygame=pygame) is not None else True
 
-    if not config.game_over and not config.level_complete and frame_count % config.ENEMY_MOVE_DELAY == 0:
-        new_enemies = []
-        for ex, ey in config.enemies:
-            path = bfs((ex, ey), (config.player.player_x, config.player.player_y), config.game_map, config.enemies)
-            if path:
-                next_step = path[0]
-                if next_step == (config.player.player_x, config.player.player_y):
-                    config.player.player_lives -= 1
-                    if config.player.player_lives <= 0:
-                        config.game_over = True
-                else:
-                    new_enemies.append(next_step)
-            else:
-                new_enemies.append((ex, ey))
-        config.enemies = new_enemies
+    # Movimenti dei nemici
+    enemy = Enemy(config=config)
+    enemy.move(frame_count)
 
     for y in range(config.MAP_HEIGHT):
         for x in range(config.MAP_WIDTH):
