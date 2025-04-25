@@ -1,48 +1,53 @@
 import random
+from collections import deque
 
 
 def genera_mappa(dim=10):
     # Crea una mappa piena di 0 (muri)
     mappa = [[0] * dim for _ in range(dim)]
 
-    # Funzione per dividere la mappa e generare il labirinto
-    def dividi_labirinto(x1, y1, x2, y2):
-        # Condizione di fermata per la ricorsione: se la sezione è troppo piccola, non dividere
-        if x2 - x1 < 2 or y2 - y1 < 2:
-            return
+    # Funzione per garantire che ci sia un percorso tra (1, 1) e (dim-2, dim-2)
+    def crea_percorso():
+        # Iniziamo il percorso dal punto (1, 1) al punto (dim-2, dim-2)
+        start = (1, 1)
+        end = (dim - 2, dim - 2)
 
-        # Decidere se dividere orizzontalmente o verticalmente
-        if (x2 - x1) > (y2 - y1):
-            # Divisione verticale
-            if x2 - x1 > 2:
-                mx = random.randint(x1 + 1, x2 - 2)  # Evita di prendere un range vuoto
-                for i in range(y1, y2):
-                    mappa[mx][i] = 1  # Aggiungi muro verticale
-                # Crea un passaggio nel muro
-                mappa[mx][random.randint(y1, y2 - 1)] = 0
+        # BFS per trovare un percorso
+        queue = deque([start])
+        parent = {start: None}
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
-                # Dividi la mappa in due parti
-                dividi_labirinto(x1, y1, mx, y2)
-                dividi_labirinto(mx + 1, y1, x2, y2)
-        else:
-            # Divisione orizzontale
-            if y2 - y1 > 2:
-                my = random.randint(y1 + 1, y2 - 2)  # Evita di prendere un range vuoto
-                for i in range(x1, x2):
-                    mappa[i][my] = 1  # Aggiungi muro orizzontale
-                # Crea un passaggio nel muro
-                mappa[random.randint(x1, x2 - 1)][my] = 0
+        while queue:
+            current = queue.popleft()
+            if current == end:
+                break
+            for direction in directions:
+                next_cell = (current[0] + direction[0], current[1] + direction[1])
+                if 1 <= next_cell[0] < dim - 1 and 1 <= next_cell[1] < dim - 1 and next_cell not in parent:
+                    queue.append(next_cell)
+                    parent[next_cell] = current
 
-                # Dividi la mappa in due parti
-                dividi_labirinto(x1, y1, x2, my)
-                dividi_labirinto(x1, my + 1, x2, y2)
+        # Ricostruiamo il percorso dal punto finale al punto di partenza
+        current = end
+        while current != start:
+            mappa[current[0]][current[1]] = 1  # Percorso libero
+            current = parent[current]
+        mappa[start[0]][start[1]] = 1  # Assicura che la partenza sia libera
 
-    # Inizia la divisione ricorsiva sulla mappa
-    dividi_labirinto(1, 1, dim - 2, dim - 2)
+    # Funzione per aggiungere muri in modo casuale, evitando di bloccare il percorso
+    def aggiungi_muri():
+        for x in range(1, dim - 1):
+            for y in range(1, dim - 1):
+                if mappa[x][y] == 0 and random.random() > 0.5:
+                    # Aggiungi muri in posizioni casuali ma non sui percorsi
+                    if mappa[x][y] == 0:
+                        mappa[x][y] = 1
 
-    # Assicuriamoci che ci sia sempre un percorso valido
-    mappa[1][1] = 0  # Punto di partenza
-    mappa[dim - 2][dim - 2] = 0  # Punto finale
+    # Creiamo il percorso garantito
+    crea_percorso()
+
+    # Aggiungiamo muri in modo casuale, ma senza bloccare il percorso
+    aggiungi_muri()
 
     return mappa
 
