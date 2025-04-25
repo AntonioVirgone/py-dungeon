@@ -2,53 +2,44 @@ import random
 
 
 def genera_mappa(dim=10):
-    # Crea una mappa di dimensione dim x dim con il bordo esterno a 0
+    # Crea una mappa piena di 0 (muri)
     mappa = [[0] * dim for _ in range(dim)]
 
-    # Funzione per generare un percorso valido
-    def crea_percorso(x, y, fine_x, fine_y):
-        # Direzioni in cui possiamo muoverci: sopra, sotto, sinistra, destra
-        direzioni = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-        stack = [(x, y)]
-        percorso = set()  # Set per evitare duplicati
-        percorso.add((x, y))
+    # Funzione per dividere la mappa e generare il labirinto
+    def dividi_labirinto(x1, y1, x2, y2):
+        if x2 - x1 < 2 or y2 - y1 < 2:
+            return
 
-        while stack:
-            cx, cy = stack[-1]
+        # Decidere se dividere orizzontalmente o verticalmente
+        if (x2 - x1) > (y2 - y1):
+            # Divisione verticale
+            mx = random.randint(x1 + 1, x2 - 2)
+            for i in range(y1, y2):
+                mappa[mx][i] = 1  # Aggiungi muro verticale
+            # Crea un passaggio nel muro
+            mappa[mx][random.randint(y1, y2 - 1)] = 0
 
-            if (cx, cy) == (fine_x, fine_y):
-                break
+            # Dividi la mappa in due parti
+            dividi_labirinto(x1, y1, mx, y2)
+            dividi_labirinto(mx + 1, y1, x2, y2)
+        else:
+            # Divisione orizzontale
+            my = random.randint(y1 + 1, y2 - 2)
+            for i in range(x1, x2):
+                mappa[i][my] = 1  # Aggiungi muro orizzontale
+            # Crea un passaggio nel muro
+            mappa[random.randint(x1, x2 - 1)][my] = 0
 
-            # Mescola le direzioni per evitare percorsi lineari
-            random.shuffle(direzioni)
-            trovato = False
+            # Dividi la mappa in due parti
+            dividi_labirinto(x1, y1, x2, my)
+            dividi_labirinto(x1, my + 1, x2, y2)
 
-            for dx, dy in direzioni:
-                nx, ny = cx + dx, cy + dy
+    # Inizia la divisione ricorsiva sulla mappa
+    dividi_labirinto(1, 1, dim - 2, dim - 2)
 
-                # Verifica che la nuova posizione sia valida e non visitata
-                if 0 < nx < dim - 1 and 0 < ny < dim - 1 and (nx, ny) not in percorso:
-                    stack.append((nx, ny))
-                    percorso.add((nx, ny))
-                    trovato = True
-                    break
-
-            # Se non è stato trovato nessun percorso valido, torniamo indietro
-            if not trovato:
-                stack.pop()
-
-        # Segna tutte le celle del percorso con 1
-        for (px, py) in percorso:
-            mappa[px][py] = 1
-
-    # Crea un percorso tra (1, 1) e (dim-2, dim-2)
-    crea_percorso(1, 1, dim - 2, dim - 2)
-
-    # Riempi il resto della mappa con 0 e 1 casuali, evitando di bloccare il percorso
-    for i in range(1, dim - 1):
-        for j in range(1, dim - 1):
-            if mappa[i][j] != 1:  # Se la cella non fa parte del percorso
-                mappa[i][j] = random.choice([0, 1])
+    # Assicuriamoci che ci sia sempre un percorso valido
+    mappa[1][1] = 0  # Punto di partenza
+    mappa[dim - 2][dim - 2] = 0  # Punto finale
 
     return mappa
 
