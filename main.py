@@ -1,3 +1,4 @@
+import random
 from collections import deque
 import pygame
 import sys
@@ -12,14 +13,19 @@ pygame.init()
 
 game_map = genera_mappa(MAP_WIDTH)
 
-print(game_map[1][1])
 
 # Posizione iniziale del player
 player_x, player_y = game_map[1][1], game_map[1][1]
 player_dir = "RIGHT"
+player_lives = 3
+player_score = 0
+
 
 # Posizione iniziale dei nemici
 enemies = enemy_generator()
+key_pos = None
+exit_pos = None
+has_key = False
 
 # Funzione per caricare e scalare immagini
 def load_image(name):
@@ -30,8 +36,7 @@ def load_image(name):
 def bfs(start, goal, game_map, avoid=[]):
     queue = deque()
     queue.append((start, []))
-    visited = set()
-    visited.add(start)
+    visited = {start}
 
     while queue:
         (x, y), path = queue.popleft()
@@ -56,6 +61,8 @@ floor_img = load_image("floor.png")
 wall_img = load_image("wall.png")
 player_img = load_image("player.png")
 enemy_img = load_image("enemy.png")
+key_img = load_image("key.png")
+exit_img = load_image("exit.png")
 
 
 # Scala le immagini alla dimensione del tile
@@ -69,6 +76,7 @@ enemy_img = pygame.transform.scale(enemy_img, (TILE_SIZE, TILE_SIZE))
 clock = pygame.time.Clock()
 frame_count = 0
 game_over = False
+level_complete = False
 
 
 # Game loop
@@ -78,7 +86,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        elif event.type == pygame.KEYDOWN and not game_over:
+        elif event.type == pygame.KEYDOWN and not game_over and not level_complete:
             dx, dy = 0, 0
             if event.key == pygame.K_LEFT:
                 dx, dy = DIRS["LEFT"]
@@ -97,22 +105,37 @@ while running:
             if game_map[new_y][new_x] == 1:
                 player_x, player_y = new_x, new_y
 
-            # Attacco con barra spaziatrice
+            # Raccoglie la chiave
+            if key_pos and (player_x, player_y) == key_pos:
+                has_key = True
+                key_pos = None
+                exit_pos = (8, 8)  # abilita l'uscita
+
+            # Passaggio livello
+            if has_key and exit_pos and (player_x, player_y) == exit_pos:
+                level_complete = True
+
+            # Attacco
             if event.key == pygame.K_SPACE:
                 atk_dx, atk_dy = DIRS[player_dir]
-                atk_x = player_x + atk_dx
-                atk_y = player_y + atk_dy
+                atk_x, atk_y = player_x + atk_dx, player_y + atk_dy
                 if (atk_x, atk_y) in enemies:
                     enemies.remove((atk_x, atk_y))
+                    player_score += 100
+                    # Possibile drop chiave
+                    if not has_key and not key_pos and random.random() < 0.5:
+                        key_pos = (atk_x, atk_y)
 
-    if not game_over and frame_count % ENEMY_MOVE_DELAY == 0:
+    if not game_over and not level_complete and frame_count % ENEMY_MOVE_DELAY == 0:
         new_enemies = []
         for ex, ey in enemies:
             path = bfs((ex, ey), (player_x, player_y), game_map, enemies)
             if path:
                 next_step = path[0]
                 if next_step == (player_x, player_y):
-                    game_over = True
+                    player_lives -= 1
+                    if player_lives <= 0:
+                        game_over = True
                 else:
                     new_enemies.append(next_step)
             else:
@@ -125,6 +148,12 @@ while running:
             img = floor_img if game_map[y][x] == 1 else wall_img
             screen.blit(img, (x * TILE_SIZE, y * TILE_SIZE))
 
+    # Oggetti
+    if key_pos:
+        screen.blit(key_img, (key_pos[0] * TILE_SIZE, key_pos[1] * TILE_SIZE))
+    if exit_pos and has_key:
+        screen.blit(exit_img, (exit_pos[0] * TILE_SIZE, exit_pos[1] * TILE_SIZE))
+
     # Player
     screen.blit(player_img, (player_x * TILE_SIZE, player_y * TILE_SIZE))
 
@@ -132,12 +161,18 @@ while running:
     for ex, ey in enemies:
         screen.blit(enemy_img, (ex * TILE_SIZE, ey * TILE_SIZE))
 
-    # Game over
+    # HUD
+    font = pygame.font.SysFont(None, 24)
+    hud = font.render(f"Vite: {player_lives}  Punti: {player_score}", True, (255, 255, 255))
+    screen.blit(hud, (10, 10))
+
+    # Game Over / Next Level
     if game_over:
-        font = pygame.font.SysFont(None, 48)
         text = font.render("GAME OVER", True, (255, 0, 0))
-        rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        screen.blit(text, rect)
+        screen.blit(text, (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2))
+    elif level_complete:
+        text = font.render("LIVELLO COMPLETATO!", True, (0, 255, 0))
+        screen.blit(text, (SCREEN_WIDTH // 2 - 80, SCREEN_HEIGHT // 2))
 
     pygame.display.flip()
     clock.tick(60)
