@@ -2,45 +2,15 @@ from collections import deque
 import pygame
 import sys
 import os
-import random
 
+from constant import *
+from map_generator import genera_mappa
 
 # Inizializza pygame
 pygame.init()
 
 
-# Costanti
-TILE_SIZE = 40
-MAP_WIDTH = 10
-MAP_HEIGHT = 10
-SCREEN_WIDTH = TILE_SIZE * MAP_WIDTH
-SCREEN_HEIGHT = TILE_SIZE * MAP_HEIGHT
-ENEMY_MOVE_DELAY = 60 # numero di frame tra un movimento del nemico
-
-
-# Direzioni
-DIRS = {
-    "UP": (0, -1),
-    "DOWN": (0, 1),
-    "LEFT": (-1, 0),
-    "RIGHT": (1, 0),
-}
-
-
-# Mappa (0 = muro, 1 = pavimento)
-game_map = [
-    [0,0,0,0,0,0,0,0,0,0],
-    [0,1,1,1,0,1,1,1,1,0],
-    [0,1,0,1,0,1,0,0,1,0],
-    [0,1,0,1,1,1,0,1,1,0],
-    [0,1,0,0,0,1,0,1,0,0],
-    [0,1,1,1,0,1,1,1,0,0],
-    [0,0,0,1,0,0,0,1,1,0],
-    [0,1,1,1,1,1,0,0,1,0],
-    [0,1,0,0,0,1,1,1,1,0],
-    [0,0,0,0,0,0,0,0,0,0],
-]
-
+game_map = genera_mappa(MAP_WIDTH)
 
 # Posizione iniziale del player
 player_x, player_y = 1, 1
@@ -97,6 +67,7 @@ enemy_img = pygame.transform.scale(enemy_img, (TILE_SIZE, TILE_SIZE))
 clock = pygame.time.Clock()
 frame_count = 0
 game_over = False
+
 
 # Game loop
 running = True
