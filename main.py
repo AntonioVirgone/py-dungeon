@@ -4,20 +4,22 @@ import sys
 import os
 
 from constant import *
-from map_generator import genera_mappa
+from enemy import enemy_generator
+from map_generator import genera_mappa, is_cell_empty
 
 # Inizializza pygame
 pygame.init()
 
-
 game_map = genera_mappa(MAP_WIDTH)
 
+print(game_map[1][1])
+
 # Posizione iniziale del player
-player_x, player_y = 1, 1
+player_x, player_y = game_map[1][1], game_map[1][1]
 player_dir = "RIGHT"
 
 # Posizione iniziale dei nemici
-enemies = [(7, 1), (5, 5)]  # due nemici
+enemies = enemy_generator()
 
 # Funzione per caricare e scalare immagini
 def load_image(name):

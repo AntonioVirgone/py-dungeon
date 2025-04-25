@@ -60,4 +60,9 @@ def stampa_mappa(mappa):
 
 # Genera e stampa la mappa 10x10
 mappa = genera_mappa()
-stampa_mappa(mappa)
+# stampa_mappa(mappa)
+
+
+def is_cell_empty(x,y):
+    if mappa[x][y] == 1:
+        return True
