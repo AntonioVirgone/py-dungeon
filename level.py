@@ -69,5 +69,5 @@ def next_level():
     config.current_level += 1
     config.player_score += 500
     config.player_lives = min(5, config.player_lives + 1)
-    level_data = generate_random_level(seed=config.current_level)
+    level_data = generate_random_level(width=config.MAP_WIDTH, height=config.MAP_HEIGHT, seed=config.current_level)
     load_level(level_data)
