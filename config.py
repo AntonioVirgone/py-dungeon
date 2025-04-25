@@ -1,4 +1,6 @@
 # === CONFIG ===
+from Player import Player
+
 TILE_SIZE = 40
 MAP_WIDTH, MAP_HEIGHT = 20, 20
 SCREEN_WIDTH = TILE_SIZE * MAP_WIDTH
@@ -7,10 +9,7 @@ ENEMY_MOVE_DELAY = 30
 
 
 # === GLOBAL GAME STATE ===
-player_x = player_y = 1
-player_dir = "RIGHT"
-player_lives = 3
-player_score = 0
+player = Player(1, 1, "RIGHT", 3, 0)
 enemies = []
 game_map = []
 key_pos = None
