@@ -55,7 +55,7 @@ def generate_random_level(width=10, height=10, walk_length=50, num_enemies=3, se
 # === LOAD LEVEL ===
 def load_level(level_data):
     config.game_map = level_data["map"]
-    config.player_x, config.player_y = level_data["player_start"]
+    config.player.player_x, config.player.player_y = level_data["player_start"]
     config.enemies = level_data["enemies"]
     config.key_pos = level_data.get("key")
     config.exit_pos = None
@@ -67,7 +67,7 @@ def load_level(level_data):
 # === AVANZA LIVELLO ===
 def next_level():
     config.current_level += 1
-    config.player_score += 500
-    config.player_lives = min(5, config.player_lives + 1)
+    config.player.player_score += 500
+    config.player.player_lives = min(5, config.player.player_lives + 1)
     level_data = generate_random_level(width=config.MAP_WIDTH, height=config.MAP_HEIGHT, seed=config.current_level)
     load_level(level_data)
